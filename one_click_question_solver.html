@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Click Question Solver</title>
+<style>
+:root{--bg:#f5f7ff;--card:#fff;--ink:#172033;--muted:#64708a;--brand:#4f46e5;--brand2:#7c3aed;--line:#e3e7f2;--good:#e8fff3}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(150deg,#eef2ff,#f8faff 50%,#f5f3ff);color:var(--ink)}
+header{padding:24px 18px 12px;text-align:center} .logo{display:inline-grid;place-items:center;width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;font-size:28px;box-shadow:0 10px 25px #4f46e533}
+h1{font-size:clamp(25px,5vw,38px);margin:12px 0 6px;letter-spacing:-.8px}header p{margin:0;color:var(--muted)}
+main{width:min(900px,100% - 28px);margin:22px auto 40px}.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:clamp(17px,4vw,28px);box-shadow:0 16px 45px #1c2b5a0b;margin-bottom:18px}
+.label{display:block;font-weight:700;margin-bottom:9px}.langrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+button,select,.filelabel,textarea{font:inherit}button{border:0;cursor:pointer;border-radius:13px;padding:12px 16px;font-weight:700;transition:transform .12s,opacity .12s}button:active{transform:scale(.98)}.pill{background:#f0f2fb;color:#4b5570}.pill.active{background:#e9e7ff;color:var(--brand);outline:2px solid #d9d5ff}
+.drop{display:block;border:2px dashed #c7cbed;background:#fafaff;border-radius:17px;padding:22px;text-align:center;cursor:pointer}.drop strong{display:block;font-size:17px;margin:8px 0 4px}.drop small{color:var(--muted)}#imageInput{display:none}.preview{display:none;max-width:100%;max-height:320px;border-radius:14px;margin:16px auto 0;object-fit:contain}
+textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line);border-radius:14px;padding:14px;outline:none}textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px #4f46e51a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.field select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.solve{width:100%;margin-top:20px;background:linear-gradient(100deg,var(--brand),var(--brand2));color:white;padding:15px;font-size:17px;box-shadow:0 9px 20px #4f46e52b}.note{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 2px 0}
+.result{display:none}.result h2{margin:0 0 12px}.answer{white-space:pre-wrap;line-height:1.7}.status{color:var(--muted);font-size:14px;margin-top:10px}.smallbtn{background:#f0f2fb;color:var(--ink);margin-top:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 15px 28px}
+@media(max-width:560px){.row{grid-template-columns:1fr}.panel{border-radius:18px}.drop{padding:18px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">✦</div>
+  <h1>One Click <span style="color:#5b50e8">Question Solver</span></h1>
+  <p>Scan a question. Tap solve. Learn the answer.</p>
+</header>
+<main>
+<section class="panel">
+  <label class="label">Choose language / ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ</label>
+  <div class="langrow">
+    <button class="pill active" data-lang="English">English</button>
+    <button class="pill" data-lang="ಕನ್ನಡ">ಕನ್ನಡ</button>
+    <button class="pill" data-lang="हिन्दी">हिन्दी</button>
+  </div>
+  <label class="label" for="imageInput">1. Upload question photo</label>
+  <label class="drop" for="imageInput">
+    <div style="font-size:32px">📷</div>
+    <strong>Choose a photo or take a picture</strong>
+    <small>JPG, PNG or WebP • You can also type your question below</small>
+  </label>
+  <input id="imageInput" type="file" accept="image/*" capture="environment">
+  <img id="preview" class="preview" alt="Question preview">
+  <div style="margin-top:19px">
+    <label class="label" for="question">2. Or type your question</label>
+    <textarea id="question" placeholder="Type or paste your question here…"></textarea>
+  </div>
+  <div class="row">
+    <div class="field"><label class="label" for="subject">Subject</label><select id="subject"><option>Auto detect</option><option>Maths</option><option>Science</option><option>English</option><option>Social Studies</option><option>Business Studies</option><option>Computer Science</option><option>Other</option></select></div>
+    <div class="field"><label class="label" for="detail">Answer style</label><select id="detail"><option>Answer + explanation</option><option>Short answer</option><option>Step-by-step solution</option><option>MCQ: choose correct option</option></select></div>
+  </div>
+  <button id="solve" class="solve">✨ SOLVE QUESTION</button>
+  <p class="note">Demo note: this page is the website interface. Real AI photo-reading and answers require connecting a secure AI backend/API. Do not put private API keys directly in this HTML file.</p>
+</section>
+<section id="result" class="panel result" aria-live="polite">
+  <h2>Answer</h2><div id="answer" class="answer"></div><div id="status" class="status"></div>
+  <button class="smallbtn" id="copy">Copy answer</button>
+</section>
+</main>
+<footer>Made for learning • Check important answers with your teacher or textbook.</footer>
+<script>
+const input=document.getElementById('imageInput'), preview=document.getElementById('preview');
+let selectedLanguage='English', imageData='';
+document.querySelectorAll('[data-lang]').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('[data-lang]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');selectedLanguage=btn.dataset.lang;
+}));
+input.addEventListener('change',()=>{
+  const file=input.files && input.files[0]; if(!file)return;
+  if(!file.type.startsWith('image/')){alert('Please choose an image file.');return;}
+  const reader=new FileReader();reader.onload=()=>{imageData=reader.result;preview.src=imageData;preview.style.display='block';};reader.readAsDataURL(file);
+});
+const result=document.getElementById('result'), answer=document.getElementById('answer'), status=document.getElementById('status');
+document.getElementById('solve').addEventListener('click',()=>{
+  const q=document.getElementById('question').value.trim();
+  if(!q && !imageData){alert('Please upload a question photo or type a question first.');return;}
+  result.style.display='block';
+  answer.textContent=selectedLanguage==='ಕನ್ನಡ'
+    ? 'ನಿಮ್ಮ ಪ್ರಶ್ನೆ ಸಿದ್ಧವಾಗಿದೆ. ನಿಜವಾದ AI ಉತ್ತರ ಪಡೆಯಲು ಈ ವೆಬ್‌ಸೈಟ್‌ಗೆ ಸುರಕ್ಷಿತ AI backend/API ಸಂಪರ್ಕಿಸಬೇಕು. ಈಗ ಇದು ವಿನ್ಯಾಸದ ಡೆಮೊ ಮಾತ್ರ.'
+    : selectedLanguage==='हिन्दी'
+    ? 'आपका प्रश्न तैयार है। असली AI उत्तर पाने के लिए इस वेबसाइट को सुरक्षित AI backend/API से जोड़ना होगा। अभी यह केवल इंटरफ़ेस डेमो है।'
+    : 'Your question is ready. To generate a real AI answer, connect this page to a secure AI backend/API. This version is the working interface demo, not yet connected to an AI answer service.';
+  status.textContent='Selected subject: '+document.getElementById('subject').value+' • '+(imageData?'Photo attached':'Typed question')+' • Answer style: '+document.getElementById('detail').value;
+  result.scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('copy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(answer.textContent);status.textContent='Answer text copied.'}
+  catch(e){status.textContent='Select and copy the answer text manually.'}
+});
+</script>
+</body>
+</html>

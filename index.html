@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Click AI Question Solver</title>
+<style>
+:root{--ink:#172033;--muted:#64708a;--brand:#4f46e5;--line:#e3e7f2}*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(150deg,#eef2ff,#f8faff 55%,#f5f3ff);color:var(--ink)}
+header{text-align:center;padding:25px 16px 12px}.logo{display:inline-grid;place-items:center;width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font-size:28px;box-shadow:0 10px 25px #4f46e533}
+h1{font-size:clamp(25px,5vw,38px);margin:12px 0 6px;letter-spacing:-.8px}header p{margin:0;color:var(--muted)}
+main{width:min(900px,calc(100% - 28px));margin:22px auto 40px}.panel{background:#fff;border:1px solid var(--line);border-radius:22px;padding:clamp(17px,4vw,28px);box-shadow:0 16px 45px #1c2b5a0b;margin-bottom:18px}
+.label{display:block;font-weight:700;margin-bottom:9px}.langrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+button,select,.drop,textarea{font:inherit}button{border:0;cursor:pointer;border-radius:13px;padding:12px 16px;font-weight:700}.pill{background:#f0f2fb;color:#4b5570}.pill.active{background:#e9e7ff;color:var(--brand);outline:2px solid #d9d5ff}
+.drop{display:block;border:2px dashed #c7cbed;background:#fafaff;border-radius:17px;padding:22px;text-align:center;cursor:pointer}.drop strong{display:block;font-size:17px;margin:8px 0 4px}.drop small{color:var(--muted)}#imageInput{display:none}.preview{display:none;max-width:100%;max-height:320px;border-radius:14px;margin:16px auto 0;object-fit:contain}
+textarea{width:100%;min-height:105px;resize:vertical;border:1px solid var(--line);border-radius:14px;padding:14px;outline:none}textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px #4f46e51a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.field select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.solve{width:100%;margin-top:20px;background:linear-gradient(100deg,#4f46e5,#7c3aed);color:white;padding:15px;font-size:17px;box-shadow:0 9px 20px #4f46e52b}.solve:disabled{opacity:.65;cursor:wait}.note{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 2px 0}
+.result h2{margin:0 0 12px}.answer{white-space:pre-wrap;line-height:1.75}.status{color:var(--muted);font-size:14px;margin-top:10px}.smallbtn{background:#f0f2fb;color:var(--ink);margin-top:12px}.hidden{display:none}footer{text-align:center;color:var(--muted);font-size:12px;padding:0 15px 28px}
+@media(max-width:560px){.row{grid-template-columns:1fr}.panel{border-radius:18px}.drop{padding:18px}}
+</style>
+</head>
+<body>
+<header><div class="logo">✦</div><h1>One Click <span style="color:#5b50e8">AI Question Solver</span></h1><p>Scan a question. Tap solve. Learn the answer.</p></header>
+<main>
+<section class="panel">
+<label class="label">Choose language / ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ</label>
+<div class="langrow"><button class="pill active" data-lang="English">English</button><button class="pill" data-lang="Kannada">ಕನ್ನಡ</button><button class="pill" data-lang="Hindi">हिन्दी</button></div>
+<label class="label" for="imageInput">1. Upload question photo</label>
+<label class="drop" for="imageInput"><div style="font-size:32px">📷</div><strong>Choose a photo or take a picture</strong><small>JPG, PNG, WebP or GIF • Max 5 MB</small></label>
+<input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" capture="environment"><img id="preview" class="preview" alt="Question preview">
+<div style="margin-top:19px"><label class="label" for="question">2. Or type your question</label><textarea id="question" placeholder="Type or paste your question here…"></textarea></div>
+<div class="row">
+<div class="field"><label class="label" for="subject">Subject</label><select id="subject"><option>Auto detect</option><option>Maths</option><option>Science</option><option>English</option><option>Social Studies</option><option>Business Studies</option><option>Computer Science</option><option>Other</option></select></div>
+<div class="field"><label class="label" for="style">Answer style</label><select id="style"><option>Answer + explanation</option><option>Short answer</option><option>Step-by-step solution</option><option>MCQ: choose correct option</option></select></div>
+</div>
+<button id="solve" class="solve">✨ SOLVE QUESTION</button>
+<p class="note">AI use may incur API charges. Keep your API key on the server only; never paste it into this webpage or share it publicly.</p>
+</section>
+<section id="result" class="panel hidden" aria-live="polite"><h2>Answer</h2><div id="answer" class="answer"></div><div id="status" class="status"></div><button class="smallbtn" id="copy">Copy answer</button></section>
+</main>
+<footer>Made for learning • Check important answers with your teacher or textbook.<br><strong style="display:inline-block;margin-top:8px;color:#5b50e8;font-size:13px">Invited by Metre</strong></footer>
+<script>
+const input=document.getElementById('imageInput'),preview=document.getElementById('preview');
+let selectedLanguage='English';
+document.querySelectorAll('[data-lang]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-lang]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedLanguage=btn.dataset.lang;}));
+input.addEventListener('change',()=>{const file=input.files?.[0];if(!file)return;if(file.size>5*1024*1024){alert('Please use an image under 5 MB.');input.value='';return;}preview.src=URL.createObjectURL(file);preview.style.display='block';});
+const result=document.getElementById('result'),answer=document.getElementById('answer'),status=document.getElementById('status'),solve=document.getElementById('solve');
+solve.addEventListener('click',async()=>{
+ const q=document.getElementById('question').value.trim(),file=input.files?.[0];
+ if(!q&&!file){alert('Please upload a question photo or type a question first.');return;}
+ const form=new FormData();form.append('question',q);form.append('language',selectedLanguage);form.append('subject',document.getElementById('subject').value);form.append('style',document.getElementById('style').value);if(file)form.append('image',file);
+ solve.disabled=true;solve.textContent='⏳ SOLVING…';result.classList.remove('hidden');answer.textContent='Working on your question…';status.textContent='Please wait.';result.scrollIntoView({behavior:'smooth',block:'start'});
+ try{const response=await fetch('/api/solve',{method:'POST',body:form});const data=await response.json();if(!response.ok)throw new Error(data.error||'Request failed');answer.textContent=data.answer;status.textContent='AI answer generated. Review the explanation and check important facts.';}
+ catch(e){answer.textContent=e.message||'Something went wrong.';status.textContent='If you are the site owner, check the server configuration and API key.';}
+ finally{solve.disabled=false;solve.textContent='✨ SOLVE QUESTION';}
+});
+document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(answer.textContent);status.textContent='Answer copied.';}catch{status.textContent='Select and copy the answer manually.';}});
+</script>
+</body></html>
