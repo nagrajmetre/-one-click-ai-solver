@@ -56,4 +56,8 @@ solve.addEventListener('click',async()=>{
 });
 document.getElementById('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(answer.textContent);status.textContent='Answer copied.';}catch{status.textContent='Select and copy the answer manually.';}});
 </script>
-</body></html>
+</body></html> const response = await fetch('/api/solve', {
+  method: 'POST',
+  body: form
+});
+const data = await response.json();
